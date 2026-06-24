@@ -34,7 +34,9 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	newProduct.ID = len(models.Products) + 1
+	newProduct.Slug = utils.GenerateSlug(newProduct.Name)
 	models.Products = append(models.Products, newProduct)
+
 	c.JSON(http.StatusCreated, gin.H{"message": "Product created"})
 }
 func UpdateProduct(c *gin.Context) {
@@ -52,6 +54,7 @@ func UpdateProduct(c *gin.Context) {
 	for index, product := range models.Products {
 		if product.ID == id {
 			updateProduct.ID = product.ID
+			updateProduct.Slug = utils.GenerateSlug(updateProduct.Name)
 			models.Products[index] = updateProduct
 			c.JSON(http.StatusOK, updateProduct)
 			return
@@ -74,4 +77,8 @@ func DeleteProduct(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+}
+func GetProductBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	c.JSON(http.StatusOK, gin.H{"slug": slug})
 }

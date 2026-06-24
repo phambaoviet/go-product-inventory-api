@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -21,4 +23,10 @@ func HandleValidationErrors(err error) gin.H {
 		return gin.H{"errors": errors}
 	}
 	return gin.H{"error": "invalid request body"}
+}
+func GenerateSlug(name string) string {
+	slug := strings.ToLower(name)
+	slug = strings.TrimSpace(slug)
+	slug = strings.ReplaceAll(slug, " ", "-")
+	return slug
 }
