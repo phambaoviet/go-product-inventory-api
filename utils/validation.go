@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -29,4 +30,18 @@ func GenerateSlug(name string) string {
 	slug = strings.TrimSpace(slug)
 	slug = strings.ReplaceAll(slug, " ", "-")
 	return slug
+}
+func IsValidSlug(slug string) bool {
+	if slug == "" {
+		return true
+	}
+	matched, _ := regexp.MatchString("^[a-zA-Z0-9-]+$", slug)
+	if !matched {
+		return false
+	}
+	onlyNumber, _ := regexp.MatchString("^[0-9]+$", slug)
+	return !onlyNumber
+}
+func IsValidSearchName(name string) bool {
+	return len(name) <= 100
 }

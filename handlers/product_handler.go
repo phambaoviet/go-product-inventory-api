@@ -5,12 +5,33 @@ import (
 	"go-product-inventory-api/utils"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetProducts(c *gin.Context) {
-	c.JSON(http.StatusOK, models.Products)
+	slug := c.Query("slug")
+	name := c.Query("name")
+	if !utils.IsValidSlug(slug) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid slug"})
+		return
+	}
+	if !utils.IsValidSearchName(name) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid search name"})
+		return
+	}
+	filteredProduct := []models.Product{}
+	for _, product := range models.Products {
+		if slug != "" && product.Slug != slug {
+			continue
+		}
+		if name != "" && !strings.Contains(strings.ToLower(product.Name), strings.ToLower(name)) {
+			continue
+		}
+		filteredProduct = append(filteredProduct, product)
+	}
+	c.JSON(http.StatusOK, filteredProduct)
 }
 func GetProductByID(c *gin.Context) {
 	idStr := c.Param("id")
