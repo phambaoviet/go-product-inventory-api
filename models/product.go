@@ -13,3 +13,4 @@ var Products = []Product{
 	{ID: 2, Name: "Banana", Price: 200, Quantity: 2},
 	{ID: 3, Name: "Orange", Price: 300, Quantity: 3},
 }
+var NextProductID = 4

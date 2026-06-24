@@ -54,7 +54,8 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, utils.HandleValidationErrors(err))
 		return
 	}
-	newProduct.ID = len(models.Products) + 1
+	newProduct.ID = models.NextProductID
+	models.NextProductID++
 	newProduct.Slug = utils.GenerateSlug(newProduct.Name)
 	models.Products = append(models.Products, newProduct)
 
