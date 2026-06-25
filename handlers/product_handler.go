@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"go-product-inventory-api/models"
+	"go-product-inventory-api/services"
 	"go-product-inventory-api/utils"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,18 +21,13 @@ func GetProducts(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid search name"})
 		return
 	}
-	filteredProduct := []models.Product{}
-	for _, product := range models.Products {
-		if slug != "" && product.Slug != slug {
-			continue
-		}
-		if name != "" && !strings.Contains(strings.ToLower(product.Name), strings.ToLower(name)) {
-			continue
-		}
-		filteredProduct = append(filteredProduct, product)
-	}
-	c.JSON(http.StatusOK, filteredProduct)
+	product := services.GetProducts(services.ProductFilter{
+		Slug: slug,
+		Name: name,
+	})
+	c.JSON(http.StatusOK, product)
 }
+
 func GetProductByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -40,13 +35,13 @@ func GetProductByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
 		return
 	}
-	for _, product := range models.Products {
-		if product.ID == id {
-			c.JSON(http.StatusOK, product)
-			return
-		}
+	product, found := services.GetProductByID(id)
+	if !found {
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+	c.JSON(http.StatusOK, product)
+
 }
 func CreateProduct(c *gin.Context) {
 	var newProduct models.Product
@@ -54,12 +49,9 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, utils.HandleValidationErrors(err))
 		return
 	}
-	newProduct.ID = models.NextProductID
-	models.NextProductID++
-	newProduct.Slug = utils.GenerateSlug(newProduct.Name)
-	models.Products = append(models.Products, newProduct)
+	createdProduct := services.CreateProduct(newProduct)
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Product created"})
+	c.JSON(http.StatusCreated, createdProduct)
 }
 func UpdateProduct(c *gin.Context) {
 	idStr := c.Param("id")
@@ -73,16 +65,12 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, utils.HandleValidationErrors(err))
 		return
 	}
-	for index, product := range models.Products {
-		if product.ID == id {
-			updateProduct.ID = product.ID
-			updateProduct.Slug = utils.GenerateSlug(updateProduct.Name)
-			models.Products[index] = updateProduct
-			c.JSON(http.StatusOK, updateProduct)
-			return
-		}
+	updateProduct, found := services.UpdateProduct(id, updateProduct)
+	if !found {
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+	c.JSON(http.StatusOK, updateProduct)
 }
 func DeleteProduct(c *gin.Context) {
 	idStr := c.Param("id")
@@ -91,14 +79,13 @@ func DeleteProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
 		return
 	}
-	for index, product := range models.Products {
-		if product.ID == id {
-			models.Products = append(models.Products[:index], models.Products[index+1:]...)
-			c.JSON(http.StatusOK, gin.H{"message": "Product deleted"})
-			return
-		}
+
+	deleted := services.DeleteProduct(id)
+	if !deleted {
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+	c.JSON(http.StatusNotFound, gin.H{"message": "delete success"})
 }
 func GetProductBySlug(c *gin.Context) {
 	slug := c.Param("slug")
