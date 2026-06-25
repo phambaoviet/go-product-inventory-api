@@ -11,7 +11,10 @@ Features
 
 * CRUD products
 * JSON request/response
-* Basic validation
+* Product validation
+* Auto-generate product slug from name
+* Query filter by name and slug
+* Service layer for product business logic
 * In-memory data storage
 
 API Endpoints
@@ -22,10 +25,38 @@ http://localhost:8080
 
 Method	Endpoint	Description
 GET	/api/products	Get all products
+GET	/api/products?name=keyboard	Filter products by name
+GET	/api/products?slug=mechanical-keyboard	Filter products by slug
 GET	/api/products/:id	Get product by ID
 POST	/api/products	Create a product
 PUT	/api/products/:id	Update a product
 DELETE	/api/products/:id	Delete a product
+
+Project Structure
+
+go-product-inventory-api/
+├── main.go
+├── routes/
+│   └── product_routes.go
+├── handlers/
+│   └── product_handler.go
+├── services/
+│   └── product_service.go
+├── models/
+│   └── product.go
+├── utils/
+│   └── validation.go
+├── go.mod
+└── README.md
+
+Folder Responsibilities
+
+main.go      -> start the Gin server
+routes/      -> define API routes
+handlers/    -> handle HTTP requests and responses
+services/    -> handle product business logic
+models/      -> define product model and mock data
+utils/       -> helper functions for validation and slug generation
 
 Getting Started
 
@@ -48,6 +79,28 @@ Sample Product JSON
 "price": 25.99,
 "quantity": 10
 }
+
+After creating a product, the API will automatically generate an id and slug.
+
+Example response:
+
+{
+"id": 1,
+"name": "Keyboard",
+"slug": "keyboard",
+"price": 25.99,
+"quantity": 10
+}
+
+Query Examples
+
+Filter products by name:
+
+GET /api/products?name=keyboard
+
+Filter products by slug:
+
+GET /api/products?slug=mechanical-keyboard
 
 Notes
 
