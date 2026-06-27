@@ -12,7 +12,7 @@ Features
 * CRUD products
 * JSON request/response
 * Product validation
-* Auto-generate product slug from name
+  * Auto-generate product slug from name
 * Query filter by name and slug
 * Service layer for product business logic
 * In-memory data storage
@@ -46,6 +46,8 @@ go-product-inventory-api/
 │   └── product.go
 ├── utils/
 │   └── validation.go
+├── repositories
+│   └── product_repository.go
 ├── go.mod
 └── README.md
 
