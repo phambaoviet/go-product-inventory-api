@@ -1,109 +1,174 @@
-Go Product Inventory API
+## Environment Variables
 
-A simple CRUD REST API for managing products, built with Go and Gin.
+Create a `.env` file based on `.env.example`.
 
-Tech Stack
+```env
+API_KEY=your-api-key
 
-* Go 1.25.5
-* Gin Framework
+DB_HOST=localhost
+DB_PORT=5433
+DB_NAME=product_inventory_db
+DB_USER=root
+DB_PASSWORD=your-password
+DB_PASSWORD_ENCODED=your-url-encoded-password
+DB_SSLMODE=disable
+```
 
-Features
+Note: If your database password contains special characters, use the URL-encoded version in `DB_PASSWORD_ENCODED` for migration commands.
 
-* CRUD products
-* JSON request/response
-* Product validation
-  * Auto-generate product slug from name
-* Query filter by name and slug
-* Service layer for product business logic
-* In-memory data storage
+Example:
 
-API Endpoints
+```text
+viet@123456 -> viet%40123456
+```
 
-Base URL:
+## Getting Started
 
-http://localhost:8080
+### 1. Clone the repository
 
-Method	Endpoint	Description
-GET	/api/products	Get all products
-GET	/api/products?name=keyboard	Filter products by name
-GET	/api/products?slug=mechanical-keyboard	Filter products by slug
-GET	/api/products/:id	Get product by ID
-POST	/api/products	Create a product
-PUT	/api/products/:id	Update a product
-DELETE	/api/products/:id	Delete a product
+```bash
+git clone <your-repository-url>
+cd go-product-inventory-api
+```
 
-Project Structure
+### 2. Install dependencies
 
-go-product-inventory-api/
-├── main.go
-├── routes/
-│   └── product_routes.go
-├── handlers/
-│   └── product_handler.go
-├── services/
-│   └── product_service.go
-├── models/
-│   └── product.go
-├── utils/
-│   └── validation.go
-├── repositories
-│   └── product_repository.go
-├── go.mod
-└── README.md
-
-Folder Responsibilities
-
-main.go      -> start the Gin server
-routes/      -> define API routes
-handlers/    -> handle HTTP requests and responses
-services/    -> handle product business logic
-models/      -> define product model and mock data
-utils/       -> helper functions for validation and slug generation
-
-Getting Started
-
-Install dependencies:
-
+```bash
 go mod tidy
+```
 
-Run the project:
+### 3. Create environment file
 
+```bash
+cp .env.example .env
+```
+
+Then update `.env` with your local values.
+
+### 4. Start PostgreSQL with Docker Compose
+
+```bash
+docker compose up -d
+```
+
+### 5. Run database migrations
+
+```bash
+make migrate-up
+```
+
+### 6. Start the server
+
+```bash
 go run .
+```
 
-The server will start at:
+The server will run at:
 
+```text
 http://localhost:8080
+```
 
-Sample Product JSON
+## API Authentication
 
-{
-"name": "Keyboard",
-"price": 25.99,
-"quantity": 10
-}
+All product routes require an API key header:
 
-After creating a product, the API will automatically generate an id and slug.
+```text
+X-API-Key: your-api-key
+```
 
-Example response:
+## API Endpoints
 
-{
-"id": 1,
-"name": "Keyboard",
-"slug": "keyboard",
-"price": 25.99,
-"quantity": 10
-}
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/products` | Get all products |
+| GET | `/api/products/:id` | Get product by ID |
+| POST | `/api/products` | Create a new product |
+| PUT | `/api/products/:id` | Update product by ID |
+| DELETE | `/api/products/:id` | Delete product by ID |
 
-Query Examples
+## Query Filters
 
-Filter products by name:
+Filter by product name:
 
+```text
 GET /api/products?name=keyboard
+```
 
-Filter products by slug:
+Filter by product slug:
 
+```text
 GET /api/products?slug=mechanical-keyboard
+```
 
-Notes
+## Example Requests
 
-This project uses an in-memory slice as a mock database. Data will be reset when the server restarts.
+### Get all products
+
+```bash
+curl http://localhost:8080/api/products \
+-H "X-API-Key: your-api-key"
+```
+
+### Create product
+
+```bash
+curl -X POST http://localhost:8080/api/products \
+-H "Content-Type: application/json" \
+-H "X-API-Key: your-api-key" \
+-d '{
+  "name": "Gaming Mouse",
+  "price": 29.99,
+  "quantity": 10
+}'
+```
+
+### Update product
+
+```bash
+curl -X PUT http://localhost:8080/api/products/1 \
+-H "Content-Type: application/json" \
+-H "X-API-Key: your-api-key" \
+-d '{
+  "name": "Gaming Mouse Updated",
+  "price": 35.99,
+  "quantity": 15
+}'
+```
+
+### Delete product
+
+```bash
+curl -X DELETE http://localhost:8080/api/products/1 \
+-H "X-API-Key: your-api-key"
+```
+
+## Migration Commands
+
+Create a migration:
+
+```bash
+make migrate-create name=create_products_table
+```
+
+Run migrations:
+
+```bash
+make migrate-up
+```
+
+Rollback one migration:
+
+```bash
+make migrate-down
+```
+
+Force migration version:
+
+```bash
+make migrate-force version=1
+```
+
+## Current Status
+
+This project currently supports product CRUD operations with PostgreSQL and API key authentication.
