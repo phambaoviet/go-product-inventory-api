@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"go-product-inventory-api/models"
 	"go-product-inventory-api/services"
 	"go-product-inventory-api/utils"
@@ -21,10 +22,14 @@ func GetProducts(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid search name"})
 		return
 	}
-	product := services.GetProducts(services.ProductFilter{
+	product, err := services.GetProducts(services.ProductFilter{
 		Slug: slug,
 		Name: name,
 	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, product)
 }
 
@@ -35,9 +40,14 @@ func GetProductByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
 		return
 	}
-	product, found := services.GetProductByID(id)
-	if !found {
-		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+	product, err := services.GetProductByID(id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get product"})
 		return
 	}
 	c.JSON(http.StatusOK, product)
@@ -49,8 +59,11 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, utils.HandleValidationErrors(err))
 		return
 	}
-	createdProduct := services.CreateProduct(newProduct)
-
+	createdProduct, err := services.CreateProduct(newProduct)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusCreated, createdProduct)
 }
 func UpdateProduct(c *gin.Context) {
@@ -65,12 +78,16 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, utils.HandleValidationErrors(err))
 		return
 	}
-	updateProduct, found := services.UpdateProduct(id, updateProduct)
-	if !found {
-		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+	updatedProduct, err := services.UpdateProduct(id, updateProduct)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, updateProduct)
+	c.JSON(http.StatusOK, updatedProduct)
 }
 func DeleteProduct(c *gin.Context) {
 	idStr := c.Param("id")
@@ -80,7 +97,11 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	deleted := services.DeleteProduct(id)
+	deleted, err := services.DeleteProduct(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot delete product"})
+		return
+	}
 	if !deleted {
 		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
 		return

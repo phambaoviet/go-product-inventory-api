@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-product-inventory-api/config"
 	"go-product-inventory-api/routes"
 	"log"
 
@@ -12,6 +13,7 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Print(".env file not found")
 	}
+	config.Init()
 	r := gin.Default()
 
 	routes.RegisterProductRoutes(r)
