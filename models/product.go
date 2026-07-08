@@ -7,10 +7,3 @@ type Product struct {
 	Price    float64 `json:"price" binding:"required,gt=0"`
 	Quantity int     `json:"quantity" binding:"required,gte=0"`
 }
-
-var Products = []Product{
-	{ID: 1, Name: "Apple", Price: 100, Quantity: 1},
-	{ID: 2, Name: "Banana", Price: 200, Quantity: 2},
-	{ID: 3, Name: "Orange", Price: 300, Quantity: 3},
-}
-var NextProductID = 4
